@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="10"/>
+    <BuildModes Active="Default"/>
+    <Units Count="4">
+      <Unit0>
+        <Filename Value="Checkers.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="332"/>
+        <CursorPos Y="352"/>
+        <FoldState Value=" TC8G3 T3j00C01411D"/>
+        <UsageCount Value="80"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\..\..\Dokumenty v.2\pascal\snake\snake.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="49"/>
+        <CursorPos X="23" Y="64"/>
+        <UsageCount Value="11"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="C:\lazarus\fpc\3.0.4\source\packages\rtl-console\src\win\crt.pp"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="7"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus\fpc\3.0.4\source\rtl\win64\windows.pp"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="7"/>
+      </Unit3>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="270" TopLine="69"/>
+      </Position1>
+      <Position2>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="350" TopLine="111"/>
+      </Position2>
+      <Position3>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="351" TopLine="111"/>
+      </Position3>
+      <Position4>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="353" TopLine="111"/>
+      </Position4>
+      <Position5>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="354" TopLine="111"/>
+      </Position5>
+      <Position6>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="108" Column="72" TopLine="30"/>
+      </Position6>
+      <Position7>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="112" Column="68" TopLine="87"/>
+      </Position7>
+      <Position8>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="111" Column="68" TopLine="87"/>
+      </Position8>
+      <Position9>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="351" Column="43" TopLine="331"/>
+      </Position9>
+      <Position10>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="333" Column="64" TopLine="331"/>
+      </Position10>
+      <Position11>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="363" Column="72" TopLine="329"/>
+      </Position11>
+      <Position12>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="359" Column="117" TopLine="329"/>
+      </Position12>
+      <Position13>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="331" TopLine="322"/>
+      </Position13>
+      <Position14>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="351" Column="83" TopLine="322"/>
+      </Position14>
+      <Position15>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="331" TopLine="322"/>
+      </Position15>
+      <Position16>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="332" TopLine="322"/>
+      </Position16>
+      <Position17>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="333" TopLine="322"/>
+      </Position17>
+      <Position18>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="334" TopLine="322"/>
+      </Position18>
+      <Position19>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="268" TopLine="102"/>
+      </Position19>
+      <Position20>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="269" TopLine="102"/>
+      </Position20>
+      <Position21>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="270" TopLine="102"/>
+      </Position21>
+      <Position22>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="271" TopLine="102"/>
+      </Position22>
+      <Position23>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="270" TopLine="102"/>
+      </Position23>
+      <Position24>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="271" TopLine="102"/>
+      </Position24>
+      <Position25>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="270" TopLine="102"/>
+      </Position25>
+      <Position26>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="271" TopLine="102"/>
+      </Position26>
+      <Position27>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="270" TopLine="102"/>
+      </Position27>
+      <Position28>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="271" TopLine="102"/>
+      </Position28>
+      <Position29>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="270" TopLine="102"/>
+      </Position29>
+      <Position30>
+        <Filename Value="Checkers.lpr"/>
+        <Caret Line="271" TopLine="102"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+  <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="Checkers.lpr"/>
+        <Line Value="352"/>
+      </Item1>
+    </BreakPoints>
+    <Watches Count="13">
+      <Item1>
+        <Expression Value="x"/>
+      </Item1>
+      <Item2>
+        <Expression Value="y"/>
+      </Item2>
+      <Item3>
+        <Expression Value="difficulty"/>
+      </Item3>
+      <Item4>
+        <Expression Value="recursed"/>
+      </Item4>
+      <Item5>
+        <Expression Value="player"/>
+      </Item5>
+      <Item6>
+        <Expression Value="find_best_move"/>
+      </Item6>
+      <Item7>
+        <Expression Value="editable_board"/>
+      </Item7>
+      <Item8>
+        <Expression Value="board"/>
+      </Item8>
+      <Item9>
+        <Expression Value="board[x,y]"/>
+      </Item9>
+      <Item10>
+        <Expression Value="scored_in_move"/>
+      </Item10>
+      <Item11>
+        <Expression Value="board_list[0]"/>
+      </Item11>
+      <Item12>
+        <Expression Value="board_list[1]"/>
+      </Item12>
+      <Item13>
+        <Expression Value="board_list[2]"/>
+      </Item13>
+    </Watches>
+  </Debugging>
+</CONFIG>
