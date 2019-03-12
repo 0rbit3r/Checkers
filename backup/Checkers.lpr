@@ -14,16 +14,17 @@ type T_board = array[0..7,0..7] of integer;
 var difficulty:byte;    //Difficulty bude počet rekurzí
     board, pos_state:T_board;
     cursor:T_cursor;
-    game_over, take_action {Přechod k logice}
-      ,sec_move: boolean;
+    game_over, take_action, {Přechod k logice}
+      debug_mode,sec_move: boolean;
     key:char;
+
 
 procedure menu(var difficulty:byte);
 begin
   repeat
     ClrScr;
     writeln('CHECKERS');
-    writeln('Pro start hry zadej obtiznost 1 - 5.');
+    writeln('Pro start hry zadej obtiznost 1 - 15.');
     writeln();
     writeln('Pro napovedu zadej 0');
     write('>>>  ');
@@ -39,12 +40,12 @@ begin
         readln();
       end
     else
-      if (difficulty < 0) or (difficulty > 5) then
+      if (difficulty < 0) or (difficulty > 15) then
       begin
         writeln('Stiskni ENTER a zkus to znovu a tentokrat spravne:-P');
         readln();
       end;
-  until (difficulty > 0) and (difficulty < 8);
+  until (difficulty > 0) and (difficulty <= 15);
 end;
 
 procedure render(board:T_board;recursed:Byte);
@@ -87,12 +88,14 @@ end;
 procedure simple_render(board:T_board);
 var x,y,i:integer;
 begin
-  ClrScr;
   for y:= 0 to 7 do
     begin
       for x:=0 to 7 do
         begin
-          write(board[x,y]:3);
+          if board[x,y]<0 then textColor(Blue);
+          if board[x,y]>0 then textColor(Red);
+          if board[x,y]=0 then textColor(White);
+          write(board[x,y]:2);
         end;
       writeln();
     end;
@@ -104,12 +107,12 @@ begin
   for y:=0 to 7 do
     for x:=0 to 7 do
       board[x,y]:= 0;
-  board[1,0]:= 0; board[3,0]:= 0; board[5,0]:= 0; board[7,0]:= 0;
-  board[0,1]:= 0; board[2,1]:= 0; board[4,1]:= 0; board[6,1]:= 0;
-  board[1,2]:= 0; board[3,2]:= 0; board[5,2]:= 0; board[7,2]:= -1;
-  board[0,7]:= 0; board[2,7]:= 0; board[4,7]:= 0; board[6,7]:= 0;
-  board[1,6]:= 0; board[3,6]:= 0; board[5,6]:= 0; board[7,6]:= 0;
-  board[0,5]:= 0; board[2,5]:= 1; board[4,5]:= 1; board[6,5]:= 0;
+  board[1,0]:= -1; board[3,0]:= -1; board[5,0]:= -1; board[7,0]:= -1;
+  board[0,1]:= -1; board[2,1]:= -1; board[4,1]:= -1; board[6,1]:= -1;
+  board[1,2]:= -1; board[3,2]:= -1; board[5,2]:= -1; board[7,2]:= -1;
+  board[0,7]:= 1; board[2,7]:= 1; board[4,7]:= 1; board[6,7]:= 1;
+  board[1,6]:= 1; board[3,6]:= 1; board[5,6]:= 1; board[7,6]:= 1;
+  board[0,5]:= 1; board[2,5]:= 1; board[4,5]:= 1; board[6,5]:= 1;
 end;
 
 function get_color(x,y:Byte):Byte;
@@ -320,7 +323,7 @@ begin
       end;
 end;
 
-function find_best_move (var in_board:T_board;recursed:Byte;player:integer):integer;
+function find_best_move (var in_board:T_board;recursed:Byte;player:integer;id:integer):integer;
 var y,x,i,k:Byte;
     scored_in_move:integer;
     editable_board:T_board;
@@ -329,40 +332,47 @@ var y,x,i,k:Byte;
 
 begin
   editable_board:= in_board;
-  find_best_move:= 0; //inicializace pro případ, že nelze udělat další tah
+  find_best_move:= player * -13; //inicializace pro případ, že nelze udělat další tah
   scored_in_move:= 0;
-  if recursed = difficulty  then find_best_move:= get_difference(editable_board)  // Human musí hrát co nejlíp taky -> proto * player
+  if recursed = difficulty  then
+    find_best_move:= get_difference(editable_board)  // Human musí hrát co nejlíp taky -> proto * player
   else                                                                                       // Ve skutečnosti vracim hodnotu o vrstvu výš, poto * -1
-  begin
-    for y:=0 to 7 do
-      for k:=0 to 3 do
-        begin
-          x:= k * 2 + ((y+1) mod 2);
-          if (board[x, y] = player) or (board[x, y] = player * 2) then
-            begin
-              board_list:= find_jumps(editable_board, x,y, player);
-              boards_to_select:=board_list;
-              for i:= 0 to 3 do
-                begin
-                  if board_list[i][0,0] <> 42 then
-                    begin
+    begin
+      for y:=0 to 7 do
+        for k:=0 to 3 do
+          begin
+            x:= k * 2 + ((y+1) mod 2);
+            if (in_board[x, y] = player) or (in_board[x, y] = player * 2) then
+              begin
+                board_list:= find_jumps(editable_board, x,y, player);
+                boards_to_select:=board_list;
+                for i:= 0 to 3 do
+                  begin
+                    if board_list[i][0,0] <> 42 then
+                      begin
+                        scored_in_move:= find_best_move(board_list[i], recursed + 1, -player,10*id+i);
+                        if  player * scored_in_move >=  player * find_best_move then          //Tady bude asi chyba !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                          begin
+                            find_best_move:= scored_in_move;
+                            in_board:= board_list[i];   // !!!!! Toto je strašně důležitý - f-ce f_b_m upraví boardu na nejlepší, co našla.
 
-                      render(board_list[i], recursed);
-                      writeln('Rekurze!',  recursed);
-                      scored_in_move:= find_best_move(board_list[i], recursed + 1, -player);
-                      if  player * scored_in_move >=  player * find_best_move then          //Tady bude asi chyba !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        begin
-                          find_best_move:= scored_in_move;
-                          in_board:= board_list[i];   // !!!!! Toto je strašně důležitý - f-ce f_b_m upraví boardu na nejlepší, co našla.
+                            if recursed=0 then in_board:= boards_to_select[i];
+                          end;
+                      end;
+                  end;
+              end;
 
-                          if recursed=0 then in_board:= boards_to_select[i];
-                        end;
-                    end;
-                end;
-            end;
-
-        end;
-  end;
+          end;
+    end;
+    if debug_mode then
+      begin
+        simple_render(in_board);
+        writeln('Rekurze: ',  recursed);
+        writeln('ID: ', id);
+        writeln('Hrac: ', player);
+        writeln('find_best_move: ',find_best_move);
+       // readln();
+      end;
 end;
 
 begin
@@ -370,6 +380,8 @@ begin
   cursor.x:=0;
   cursor.y:=0;           //Inicializace
   board_init(board);
+
+  debug_mode:= True;
 
   menu(difficulty);
   Clrscr();
@@ -401,7 +413,7 @@ begin
         delay(1000);
         //AI! Hurá!
 
-        find_best_move(board,0,-1);
+        find_best_move(board,0,-1,0);
 
         render(board,0);
 
