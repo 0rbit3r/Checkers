@@ -15,7 +15,8 @@ var difficulty:byte;    //Difficulty bude počet rekurzí
     board, pos_state:T_board;
     cursor:T_cursor;
     game_over, take_action, {Přechod k logice}
-      debug_mode,sec_move: boolean;
+    sec_move, winner,
+    last_layer_debug, debug_mode, custom_board: boolean;
     key:char;
 
 
@@ -101,18 +102,32 @@ begin
     end;
 end;
 
+
+
 procedure board_init(var board:T_board);
 var x,y:integer;
 begin
   for y:=0 to 7 do
     for x:=0 to 7 do
       board[x,y]:= 0;
-  board[1,0]:= -1; board[3,0]:= -1; board[5,0]:= -1; board[7,0]:= -1;
+  if custom_board then
+  begin
+  board[1,0]:= 0; board[3,0]:= 0; board[5,0]:= 0; board[7,0]:= 0;
+    board[0,1]:= 0; board[2,1]:= 0; board[4,1]:= 0; board[6,1]:= 0;
+    board[1,2]:= 0; board[3,2]:= 0; board[5,2]:= 0; board[7,2]:= -1;
+    board[0,7]:= 0; board[2,7]:= 0; board[4,7]:= 0; board[6,7]:= 0;
+    board[1,6]:= 0; board[3,6]:= 0; board[5,6]:= 0; board[7,6]:= 0;
+    board[0,5]:= 0; board[2,5]:= 1; board[4,5]:= 1; board[6,5]:= 0;
+  end
+  else
+  begin
+    board[1,0]:= -1; board[3,0]:= -1; board[5,0]:= -1; board[7,0]:= -1;
   board[0,1]:= -1; board[2,1]:= -1; board[4,1]:= -1; board[6,1]:= -1;
   board[1,2]:= -1; board[3,2]:= -1; board[5,2]:= -1; board[7,2]:= -1;
   board[0,7]:= 1; board[2,7]:= 1; board[4,7]:= 1; board[6,7]:= 1;
   board[1,6]:= 1; board[3,6]:= 1; board[5,6]:= 1; board[7,6]:= 1;
   board[0,5]:= 1; board[2,5]:= 1; board[4,5]:= 1; board[6,5]:= 1;
+  end;
 end;
 
 function get_color(x,y:Byte):Byte;
@@ -335,7 +350,15 @@ begin
   find_best_move:= player * -13; //inicializace pro případ, že nelze udělat další tah
   scored_in_move:= 0;
   if recursed = difficulty  then
-    find_best_move:= get_difference(editable_board)  // Human musí hrát co nejlíp taky -> proto * player
+    begin
+    find_best_move:= get_difference(editable_board);
+    if last_layer_debug then
+      begin
+        simple_render(in_board);
+        writeln(find_best_move);
+        readln();
+      end;
+    end
   else                                                                                       // Ve skutečnosti vracim hodnotu o vrstvu výš, poto * -1
     begin
       for y:=0 to 7 do
@@ -371,24 +394,71 @@ begin
         writeln('ID: ', id);
         writeln('Hrac: ', player);
         writeln('find_best_move: ',find_best_move);
-       // readln();
+        readln();
       end;
+end;
+
+function check_game_over (board:T_board;var winner:boolean):boolean;
+  var x,y,stones_A,stones_B:integer;
+begin
+  check_game_over:=False;
+  stones_A:= 0;
+  stones_B:=0;
+  for  y:=0 to 7 do
+    for x:=0 to 7 do
+      begin
+        if board[x,y] > 0 then
+          stones_A += 1;
+        if board[x,y] < 0 then
+          stones_B += 1;
+      end;
+  if stones_A = 0 then
+    begin
+      winner:=False;
+      check_game_over:=True;
+    end;
+  if stones_B = 0 then
+    begin
+      winner:=True;
+      check_game_over:=True;
+    end;
+end;
+
+procedure gmovr_screen(winner:boolean);
+var x,y:integer;
+begin
+  gotoxy(1,13);
+  if winner then
+    begin
+      Textcolor(Green);
+      write('               YOU WIN!                 ');
+    end
+  else
+    begin
+      Textcolor(Red);
+      write('              GAME OVER!                ');
+    end;
+
 end;
 
 begin
   game_over:= False;
+  winner:= False;
   cursor.x:=0;
   cursor.y:=0;           //Inicializace
   board_init(board);
 
   debug_mode:= False;
+  last_layer_debug := False;
+  custom_board:= True;;
 
   menu(difficulty);
   Clrscr();
   render(board,0);
+
   while game_over = False do  //Main game loop
     begin
-                                     //↓↓↓Controls
+      take_action:=False;                               //↓↓↓Controls
       while take_action = False do
         begin
           cursor_blink(Yellow,board_coor(cursor.x, True),board_coor(cursor.y,False));
@@ -417,8 +487,11 @@ begin
 
         render(board,0);
 
+        game_over:= check_game_over(board,winner);
+
         take_action:=False;
     end;
+    gmovr_screen(winner);
 end.
 
 {Poloosa y jde odshora dolu
