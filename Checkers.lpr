@@ -1,8 +1,3 @@
-{TODO
-
-viz tady bude asi chyba
-
-}
 program Checkers;
 Uses Crt;
 type T_board = array[0..7,0..7] of integer;
@@ -12,20 +7,19 @@ type T_board = array[0..7,0..7] of integer;
            end;
      T_board_list = array[0..3] of T_board;
 var difficulty:byte;    //Difficulty bude počet rekurzí
-    board, pos_state:T_board;
+    board:T_board;
     cursor:T_cursor;
-    game_over, take_action, {Přechod k logice}
-    sec_move, winner,
-    last_layer_debug, debug_mode, custom_board: boolean;
+    game_over, take_action, {Přechod k logice}sec_move, winner,
+    last_layer_debug, debug_mode, custom_board, CPUvCPU, rand_moves: boolean;
     key:char;
-
+    rand_num:real;
 
 procedure menu(var difficulty:byte);
 begin
   repeat
     ClrScr;
     writeln('CHECKERS');
-    writeln('Pro start hry zadej obtiznost 1 - 15.');
+    writeln('Pro start hry zadej obtiznost 1 - 10.');
     writeln();
     writeln('Pro napovedu zadej 0');
     write('>>>  ');
@@ -41,15 +35,15 @@ begin
         readln();
       end
     else
-      if (difficulty < 0) or (difficulty > 15) then
+      if (difficulty < 0) or (difficulty > 10) then
       begin
         writeln('Stiskni ENTER a zkus to znovu a tentokrat spravne:-P');
         readln();
       end;
-  until (difficulty > 0) and (difficulty <= 15);
+  until (difficulty > 0) and (difficulty <= 10);
 end;
 
-procedure render(board:T_board;recursed:Byte);
+procedure render(board:T_board);
 var x,y,i:integer;
 begin
   //ClrScr;
@@ -58,12 +52,12 @@ begin
     for i:=0 to 2 do
       begin
         for x:=0 to 7 do
-          begin                                                 //-------------
+          begin
             if (x + y) mod 2 = 0 then
-            begin                                               //Recursed a readln smaž!
+            begin
               TextBackground(Black);
               write('     ');
-            end                                                //-----------------
+            end
             else
             begin
               TextBackground(White);
@@ -87,7 +81,7 @@ begin
 end;
 
 procedure simple_render(board:T_board);
-var x,y,i:integer;
+var x,y:integer;
 begin
   for y:= 0 to 7 do
     begin
@@ -101,8 +95,6 @@ begin
       writeln();
     end;
 end;
-
-
 
 procedure board_init(var board:T_board);
 var x,y:integer;
@@ -279,8 +271,7 @@ begin
 end;
 
 function get_difference(board:t_board):integer;
-{Hráč - CPU => kladné je dobré
- Dáma je za pětinásobek}
+{Hráč - CPU => kladné je dobré}
 var x,y:byte;
 begin
   get_difference:=0;
@@ -338,7 +329,7 @@ begin
       end;
 end;
 
-function find_best_move (var in_board:T_board;recursed:Byte;player:integer;id:integer):integer;
+function find_best_move(var in_board:T_board;recursed:Byte;player:integer;id:integer):integer;
 var y,x,i,k:Byte;
     scored_in_move:integer;
     editable_board:T_board;
@@ -374,12 +365,18 @@ begin
                     if board_list[i][0,0] <> 42 then
                       begin
                         scored_in_move:= find_best_move(board_list[i], recursed + 1, -player,10*id+i);
-                        if  player * scored_in_move >=  player * find_best_move then          //Tady bude asi chyba !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        rand_num:=100;
+                        if  player * scored_in_move >=  player * find_best_move then
                           begin
-                            find_best_move:= scored_in_move;
-                            in_board:= board_list[i];   // !!!!! Toto je strašně důležitý - f-ce f_b_m upraví boardu na nejlepší, co našla.
+                            if (rand_moves = True) and (scored_in_move =  find_best_move) then
+                              rand_num := Random(100);
+                            if rand_num > 30 then
+                              begin
+                                find_best_move:= scored_in_move;
+                                in_board:= board_list[i];   // !!!!! Toto je strašně důležitý - f-ce f_b_m upraví boardu na nejlepší, co našla.
 
-                            if recursed=0 then in_board:= boards_to_select[i];
+                                if recursed=0 then in_board:= boards_to_select[i];
+                              end;
                           end;
                       end;
                   end;
@@ -425,7 +422,6 @@ begin
 end;
 
 procedure gmovr_screen(winner:boolean);
-var x,y:integer;
 begin
   gotoxy(1,13);
   if winner then
@@ -441,21 +437,41 @@ begin
 
 end;
 
+procedure demo(board:T_board;var game_over:boolean; winner:boolean);
 begin
-  game_over:= False;
-  winner:= False;
-  cursor.x:=0;
-  cursor.y:=0;           //Inicializace
-  board_init(board);
+  While game_over=False do
+      begin
+        find_best_move(board,0,+1,0);
+        render(board);
+        delay(1000);
+        game_over:= check_game_over(board,winner);
+        find_best_move(board,0,-1,0);
+        render(board);
+        delay(1000);
+        game_over:= check_game_over(board,winner);
+      end;
+end;
 
-  debug_mode:= False;
-  last_layer_debug := False;
-  custom_board:= True;;
+begin
+  //dev tools
+  CPUvCPU:=            False;
+  custom_board:=       False;
+  debug_mode:=         False;
+  last_layer_debug :=  False;
+  rand_moves:=         True;
 
   menu(difficulty);
-  Clrscr();
-  render(board,0);
 
+  randomize();
+  game_over:= False;
+  winner:= False;
+  board_init(board);
+  Clrscr();
+  cursor.x:=0;
+  cursor.y:=0;
+  render(board);
+
+  if CPUvCPU then demo(board,game_over,winner);
   while game_over = False do  //Main game loop
     begin
       take_action:=False;                               //↓↓↓Controls
@@ -479,19 +495,17 @@ begin
                    end;
           end;
         end;
-        render(board,0);
+        render(board);
         delay(1000);
-        //AI! Hurá!
 
         find_best_move(board,0,-1,0);
-
-        render(board,0);
+        render(board);
 
         game_over:= check_game_over(board,winner);
-
         take_action:=False;
     end;
     gmovr_screen(winner);
+    readln();
 end.
 
 {Poloosa y jde odshora dolu
