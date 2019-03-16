@@ -1,4 +1,5 @@
 # Checkers
 ToDo:
-Doladit AI (+přidat motivaci k získání dámy)
-Přidat dámu
+- Doladit AI (V některých případech a obvzláště, když je na hře už jen několik málo kamenů, má oponent tendenci se chovat zdánlivě nelogicky)
+
+- Přidat dámu
