@@ -12,7 +12,8 @@ var difficulty:byte;    //Difficulty bude počet rekurzí
     game_over, take_action, {Přechod k logice}sec_move, winner,
     last_layer_debug, debug_mode, custom_board, CPUvCPU, rand_moves: boolean;
     key:char;
-    rand_num:real;
+    rand_num,KING:integer;
+
 
 procedure menu(var difficulty:byte);
 begin
@@ -62,14 +63,34 @@ begin
             begin
               TextBackground(White);
               write(' ');
+              if i = 0 then
+                begin
+                  if board[x,y] = KING then
+                    TextBackground(Red);
+                  if board[x,y] = -KING then
+                    TextBackground(Blue);
+                end;
+
               if i = 1 then
-                case board[x,y] of
-                  0: TextBackground(White);
-                  1: TextBackground(Red);
-                  -1: TextBackground(Blue);
+                begin
+                  case board[x,y] of
+                    0: TextBackground(White);
+                    1: TextBackground(Red);
+                    -1: TextBackground(Blue);
+                  end;
+                  if board[x,y] = KING then
+                    TextBackground(Red);
+                  if board[x,y] = -KING then
+                    TextBackground(Blue);
                 end;
               write('   ');
               TextBackground(White);
+              if (i=0) and (board[x,y]*board[x,y] = KING * KING) then
+                begin
+                  gotoxy(WhereX-2,WhereY);
+                  write(' ');
+                  gotoxy(WhereX+1,WhereY);
+                end;
               write(' ');
             end;
         end;
@@ -105,7 +126,7 @@ begin
   if custom_board then
   begin
   board[1,0]:= 0; board[3,0]:= 0; board[5,0]:= 0; board[7,0]:= 0;
-    board[0,1]:= 0; board[2,1]:= 0; board[4,1]:= 0; board[6,1]:= 0;
+    board[0,1]:= 0; board[2,1]:= 1; board[4,1]:= 0; board[6,1]:= 0;
     board[1,2]:= 0; board[3,2]:= 0; board[5,2]:= 0; board[7,2]:= -1;
     board[0,7]:= 0; board[2,7]:= 0; board[4,7]:= 0; board[6,7]:= 0;
     board[1,6]:= 0; board[3,6]:= 0; board[5,6]:= 0; board[7,6]:= 0;
@@ -147,6 +168,18 @@ begin
     board_coor:= 5*k + 3
   else
     board_coor:= 3*k + 2;
+end;
+
+procedure check_for_king(var board:T_board);
+var x:integer;
+begin
+  for x:= 0 to 7 do
+    begin
+      if board[x,0] = 1 then
+        board[x,0]:= KING;
+      if board[x,7] = -1 then
+        board[x,7]:= -KING;
+    end;
 end;
 
 procedure move_stone(var board:T_board;x,y:Byte;var continue,sec_move:Boolean;var cursor:T_cursor);
@@ -295,6 +328,7 @@ begin
                 find_jumps[index] := board;
                 find_jumps[index][x,y]:= 0;
                 find_jumps[index][x-1, y - player]:= player * 1;
+                check_for_king(find_jumps[index]);
                 index += 1;
               end;
             if (x>1) and (y > -1 + (2 * player)) and (y < 8 + (2*player)) then
@@ -304,6 +338,7 @@ begin
                   find_jumps[index][x,y]:= 0;
                   find_jumps[index][x-1,y - player]:= 0;
                   find_jumps[index][x-2, y - player*2]:= player * 1;
+                  check_for_king(find_jumps[index]);
                   index += 1;
                 end;
           end;
@@ -314,6 +349,7 @@ begin
                 find_jumps[index] := board;
                 find_jumps[index][x,y]:= 0;
                 find_jumps[index][x+1, y - player]:= player * 1;
+                check_for_king(find_jumps[index]);
                 index += 1;
               end;
             if (x<6) and (y > -1 + (2 * player)) and (y < 8 + (2*player)) then
@@ -323,6 +359,7 @@ begin
                   find_jumps[index][x,y]:= 0;
                   find_jumps[index][x+1,y - player]:= 0;
                   find_jumps[index][x+2, y - player*2]:= player * 1;
+                  check_for_king(find_jumps[index]);
                   index += 1;
                 end;
           end;
@@ -455,10 +492,12 @@ end;
 begin
   //dev tools
   CPUvCPU:=            False;
-  custom_board:=       False;
+  custom_board:=       True;
   debug_mode:=         False;
   last_layer_debug :=  False;
   rand_moves:=         True;
+
+  KING:=5;
 
   menu(difficulty);
 
@@ -495,6 +534,7 @@ begin
                    end;
           end;
         end;
+        check_for_king(board);
         render(board);
         delay(1000);
 
