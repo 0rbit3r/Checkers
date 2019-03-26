@@ -4,3 +4,4 @@ ToDo:
 
 - Tu a tam se stane, že se kamen nebo dva rozhodnou spáchat sebevraždu a prostě zmizí. To by bylo fajn doladit.
 
+- Zkultivovat kód = odstranit fragmenty ze starých verzí a přidat všechny komentáře, které chybí (tedy všechny komentáře)
