@@ -79,6 +79,8 @@ begin
                     -1: TextBackground(Blue);
                     69: TextBackground(Yellow);
                     70: TextBackground(Green);
+                    79: TextBackground(Yellow);
+                    80: TextBackground(Green);
                   end;
                   if board[x,y] = KING then
                     TextBackground(Red);
@@ -87,7 +89,7 @@ begin
                 end;
               write('   ');
               TextBackground(White);
-              if (i=0) and (board[x,y]*board[x,y] = KING * KING) then
+              if (i=0) and ((board[x,y]*board[x,y] = KING * KING) or (board[x,y] = 79) or (board[x,y] = 80)) then
                 begin
                   gotoxy(WhereX-2,WhereY);
                   write(' ');
@@ -128,13 +130,13 @@ begin
   if custom_board then
   begin
     board[1,0]:= 0; board[3,0]:= 5; board[5,0]:= 0; board[7,0]:= 0;
-    board[0,1]:= 1; board[2,1]:= 0; board[4,1]:= 0; board[6,1]:= -1;
+    board[0,1]:= 0; board[2,1]:= 0; board[4,1]:= 0; board[6,1]:= -1;
     board[1,2]:= 0; board[3,2]:= 0; board[5,2]:= 0; board[7,2]:= 0;
-    board[0,3]:= 0; board[2,3]:= 0; board[4,3]:= 0; board[6,3]:= 1;
-    board[1,4]:= 1; board[3,4]:= 0; board[5,4]:= 0; board[7,4]:= 0;
+    board[0,3]:= 0; board[2,3]:= 1; board[4,3]:= 0; board[6,3]:= 1;
+    board[1,4]:= 0; board[3,4]:= 1; board[5,4]:= 0; board[7,4]:= 0;
     board[0,5]:= 0; board[2,5]:= 0; board[4,5]:= 0; board[6,5]:= 0;
     board[1,6]:= 0; board[3,6]:= 0; board[5,6]:= 0; board[7,6]:= 0;
-    board[0,7]:= -5; board[2,7]:= 0; board[4,7]:= -5; board[6,7]:= 0;
+    board[0,7]:= -5; board[2,7]:= 0; board[4,7]:= 0; board[6,7]:= 0;
   end
   else
   begin
@@ -197,88 +199,147 @@ begin
 end;
 
 function find_jumps(board:T_board; x,y:Byte; player:integer;see_changes:boolean):T_board_list;
-var index,i:byte;
+var index,i,x0,y0,obstacles,enemy_x,enemy_y:byte;
+    dir_ctr_x:array[0..3] of byte = (+1,+1,-1,-1);
+    dir_ctr_y:array[0..3] of byte = (+1,-1,+1,-1);
 begin
   for i:= 0 to 14 do find_jumps[i][0,0]:= 42;
   index:=0;
   if board[x,y] = player * 1 then //běžný kámen
-    if (y > -1 + player) and (y < 8 + player) then
-      begin
-        if (x > 0) then
-          begin
-            if (board[x-1, y - player] = 0) then    //Vlevo nad je místo \\\   pro lidského hráče směr pohybu klesá
-              begin
-                find_jumps[index] := board;
-                if see_changes then
-                  begin
-                    find_jumps[index][x,y]:= 69;
-                    find_jumps[index][x-1, y - player]:= player * 70;
-                  end
-                else
-                  begin
-                    find_jumps[index][x,y]:= 0;
-                    find_jumps[index][x-1, y - player]:= player * 1;
-                  end;
-                check_for_king(find_jumps[index]);
-                index += 1;
-              end;
-            if (x>1) and (y > -1 + (2 * player)) and (y < 8 + (2*player)) then
-              if (board[x-1, y - player] = player * -1) and (board[x-2, y - player*2] = 0) then
+    begin
+      if (y > -1 + player) and (y < 8 + player) then
+        begin
+          if (x > 0) then
+            begin
+              if (board[x-1, y - player] = 0) then    //Vlevo nad je místo \\\   pro lidského hráče směr pohybu klesá
                 begin
                   find_jumps[index] := board;
                   if see_changes then
                     begin
                       find_jumps[index][x,y]:= 69;
-                      find_jumps[index][x-2, y - player*2]:= player * 70;
+                      find_jumps[index][x-1, y - player]:= player * 70;
                     end
                   else
                     begin
                       find_jumps[index][x,y]:= 0;
-                      find_jumps[index][x-2, y - player*2]:= player * 1;
+                      find_jumps[index][x-1, y - player]:= player * 1;
                     end;
-                  find_jumps[index][x-1,y - player]:= 0;
                   check_for_king(find_jumps[index]);
                   index += 1;
                 end;
-          end;
-        if (x < 7) then
-          begin
-            if (board[x+1, y - player] = 0) then   //Vpravo nad je místo
-              begin
-                find_jumps[index] := board;
-                if see_changes then
+              if (x>1) and (y > -1 + (2 * player)) and (y < 8 + (2*player)) then
+                if (board[x-1, y - player] * -player > 0) and (board[x-2, y - player*2] = 0) then
                   begin
-                    find_jumps[index][x,y]:= 69;
-                    find_jumps[index][x+1, y - player]:= player * 70;
-                  end
-                else
-                  begin
-                    find_jumps[index][x,y]:= 0;
-                    find_jumps[index][x+1, y - player]:= player * 1;
+                    find_jumps[index] := board;
+                    if see_changes then
+                      begin
+                        find_jumps[index][x,y]:= 69;
+                        find_jumps[index][x-2, y - player*2]:= player * 70;
+                      end
+                    else
+                      begin
+                        find_jumps[index][x,y]:= 0;
+                        find_jumps[index][x-2, y - player*2]:= player * 1;
+                      end;
+                    find_jumps[index][x-1,y - player]:= 0;
+                    check_for_king(find_jumps[index]);
+                    index += 1;
                   end;
-                check_for_king(find_jumps[index]);
-                index += 1;
-              end;
-            if (x<6) and (y > -1 + (2 * player)) and (y < 8 + (2*player)) then
-              if (board[x+1, y - player] = player * -1) and (board[x+2, y - player*2] = 0) then
+            end;
+          if (x < 7) then
+            begin
+              if (board[x+1, y - player] = 0) then   //Vpravo nad je místo
                 begin
                   find_jumps[index] := board;
                   if see_changes then
                     begin
                       find_jumps[index][x,y]:= 69;
-                      find_jumps[index][x+2, y - player*2]:= player * 70;
+                      find_jumps[index][x+1, y - player]:= player * 70;
                     end
                   else
                     begin
                       find_jumps[index][x,y]:= 0;
-                      find_jumps[index][x+2, y - player*2]:= player * 1;
+                      find_jumps[index][x+1, y - player]:= player * 1;
                     end;
-                  find_jumps[index][x+1,y - player]:= 0;
                   check_for_king(find_jumps[index]);
                   index += 1;
                 end;
-          end;
+              if (x<6) and (y > -1 + (2 * player)) and (y < 8 + (2*player)) then
+                if (board[x+1, y - player] * -player > 0) and (board[x+2, y - player*2] = 0) then
+                  begin
+                    find_jumps[index] := board;
+                    if see_changes then
+                      begin
+                        find_jumps[index][x,y]:= 69;
+                        find_jumps[index][x+2, y - player*2]:= player * 70;
+                      end
+                    else
+                      begin
+                        find_jumps[index][x,y]:= 0;
+                        find_jumps[index][x+2, y - player*2]:= player * 1;
+                      end;
+                    find_jumps[index][x+1,y - player]:= 0;
+                    check_for_king(find_jumps[index]);
+                    index += 1;
+                  end;
+            end;
       end;
+    end
+  else if board[x,y] = player * KING then
+    begin
+      for i:= 0 to 3 do
+        begin
+          x0:=x;
+          y0:=y;
+          obstacles:=0;
+          enemy_x:=200;
+          enemy_y:=200;
+          while True do
+            begin
+              x0 += dir_ctr_x[i];
+              y0 += dir_ctr_y[i];
+              if (x0<=7) and (y0<=7) and (x0>=0) and (y0>=0) then
+                begin
+                  if board[x0,y0] = 0 then
+                    begin
+                      obstacles:=0;
+                      find_jumps[index]:=board;
+                      if enemy_x <> 200 then
+                        begin
+                          find_jumps[index][enemy_x,enemy_y]:=0;
+                        end;
+                      if see_changes then
+                        begin
+                          find_jumps[index][x,y]:=79;
+                          find_jumps[index][x0,y0]:=80;
+                        end
+                      else
+                        begin
+                          find_jumps[index][x,y]:=0;
+                          find_jumps[index][x0,y0]:=KING*player;
+                        end;
+                        index +=1;
+                    end;
+                  if (board[x0,y0] = -player) or (board[x0,y0] = -player * KING)  then
+                    begin
+                      obstacles+=1;
+                      enemy_x:=x0;
+                      enemy_y:=y0;
+                    end;
+                  if (board[x0,y0] = player) or (board[x0,y0] = player * KING)  then
+                    begin
+                      break;
+                    end;
+                  if obstacles = 2 then break;
+
+                end
+              else
+                break;
+
+            end;
+        end;
+    end;
+
 end;
 
 function find_best_move(var in_board:T_board;recursed:Byte;player:integer;id:integer):integer;
@@ -307,7 +368,7 @@ begin
       for y:=0 to 7 do
         for x:=0 to 7 do
           begin
-            if (in_board[x, y] = player) or (in_board[x, y] = player * 2) then
+            if (in_board[x, y] = player) or (in_board[x, y] = player * 5) then
               begin
                 board_list:= find_jumps(editable_board, x,y, player,False);
                 boards_to_select:=board_list;
@@ -377,6 +438,8 @@ begin
                         begin
                           if possible_moves[index][x,y] = 69 then possible_moves[index][x,y]:= 0;
                           if possible_moves[index][x,y] = 70 then possible_moves[index][x,y]:= 1;
+                          if possible_moves[index][x,y] = 79 then possible_moves[index][x,y]:= 0;
+                          if possible_moves[index][x,y] = 80 then possible_moves[index][x,y]:= 5;
                           board:=possible_moves[index];
                         end;
                   end;
@@ -480,12 +543,10 @@ begin
             'a': if cursor.x>0 then cursor.x -= 1;
             's': if cursor.y<7 then cursor.y += 1;
             'w': if cursor.y>0 then cursor.y -= 1;
-            ' ': if board[cursor.x, cursor.y] = 1 then
+            ' ': if board[cursor.x, cursor.y] > 0 then
                    begin
-                     sec_move:= False;
                      move_stone(board,take_action,cursor);
-                     if sec_move then
-                       move_stone(board,take_action,cursor);
+
                    end;
           end;
         end;
