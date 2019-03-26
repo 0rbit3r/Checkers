@@ -5,14 +5,14 @@ type T_board = array[0..7,0..7] of integer;
            x:byte;
            y:byte;
            end;
-     T_board_list = array[0..3] of T_board;
+     T_board_list = array[0..14] of T_board;
 var difficulty:byte;    //Difficulty bude počet rekurzí
     board:T_board;
     cursor:T_cursor;
     game_over, take_action, {Přechod k logice}sec_move, winner,
     last_layer_debug, debug_mode, custom_board, CPUvCPU, rand_moves: boolean;
     key:char;
-    rand_num,KING:integer;
+    rand_num,KING,RAND_KOEF:integer;
 
 
 procedure menu(var difficulty:byte);
@@ -20,7 +20,7 @@ begin
   repeat
     ClrScr;
     writeln('CHECKERS');
-    writeln('Pro start hry zadej obtiznost 1 - 10.');
+    writeln('Pro start hry zadej obtiznost 1 - 8.');
     writeln();
     writeln('Pro napovedu zadej 0');
     write('>>>  ');
@@ -36,12 +36,12 @@ begin
         readln();
       end
     else
-      if (difficulty < 0) or (difficulty > 10) then
+      if (difficulty < 0) or (difficulty > 8) then
       begin
         writeln('Stiskni ENTER a zkus to znovu a tentokrat spravne:-P');
         readln();
       end;
-  until (difficulty > 0) and (difficulty <= 10);
+  until (difficulty > 0) and (difficulty <= 8);
 end;
 
 procedure render(board:T_board);
@@ -77,6 +77,8 @@ begin
                     0: TextBackground(White);
                     1: TextBackground(Red);
                     -1: TextBackground(Blue);
+                    69: TextBackground(Yellow);
+                    70: TextBackground(Green);
                   end;
                   if board[x,y] = KING then
                     TextBackground(Red);
@@ -125,12 +127,14 @@ begin
       board[x,y]:= 0;
   if custom_board then
   begin
-  board[1,0]:= 0; board[3,0]:= 0; board[5,0]:= 0; board[7,0]:= 0;
-    board[0,1]:= 0; board[2,1]:= 1; board[4,1]:= 0; board[6,1]:= 0;
-    board[1,2]:= 0; board[3,2]:= 0; board[5,2]:= 0; board[7,2]:= -1;
-    board[0,7]:= 0; board[2,7]:= 0; board[4,7]:= 0; board[6,7]:= 0;
+    board[1,0]:= 0; board[3,0]:= 5; board[5,0]:= 0; board[7,0]:= 0;
+    board[0,1]:= 1; board[2,1]:= 0; board[4,1]:= 0; board[6,1]:= -1;
+    board[1,2]:= 0; board[3,2]:= 0; board[5,2]:= 0; board[7,2]:= 0;
+    board[0,3]:= 0; board[2,3]:= 0; board[4,3]:= 0; board[6,3]:= 1;
+    board[1,4]:= 1; board[3,4]:= 0; board[5,4]:= 0; board[7,4]:= 0;
+    board[0,5]:= 0; board[2,5]:= 0; board[4,5]:= 0; board[6,5]:= 0;
     board[1,6]:= 0; board[3,6]:= 0; board[5,6]:= 0; board[7,6]:= 0;
-    board[0,5]:= 0; board[2,5]:= 1; board[4,5]:= 1; board[6,5]:= 0;
+    board[0,7]:= -5; board[2,7]:= 0; board[4,7]:= -5; board[6,7]:= 0;
   end
   else
   begin
@@ -149,7 +153,7 @@ begin
   else get_color:=White;
 end;
 
-procedure cursor_blink(color:Byte;x,y:Byte);
+procedure cursor_render(color:Byte;x,y:Byte);
 begin
 TextBackground(color);
 gotoxy(x-2, y);
@@ -182,127 +186,6 @@ begin
     end;
 end;
 
-procedure move_stone(var board:T_board;x,y:Byte;var continue,sec_move:Boolean;var cursor:T_cursor);
-var scr_x,scr_y,L_clr,R_clr:Byte;
-    go_on:Boolean;
-    choice_x,choice_y:Byte;
-    chosen_x,chosen_y:Byte;
-    choL_Y,choL_X,choR_Y,choR_X:Byte;
-begin
-   //Sec_move je pro nássobné skoky v tahu
-  continue:=False;  //Continue zabraňuje pokračování v hlavní smyčce při nemožném tahu
-  go_on:=False;
-  L_clr:= 0;   //1 je pro možnost pohybu, 2 pro skok a 0 je nic.
-  R_clr:= 0;
-  scr_x:= board_coor(x,True);   //Načtení hodnot pro display
-  scr_y:= board_coor(y,False);
-
-  if y>0 then
-    begin   //Podmínky pro volbu tahu (Volné pravé/levé políčko)
-      if (x<7) and (board[x+1,y-1] = 0) then
-        begin
-          R_clr:= 1;
-          choice_x:=scr_x+4;      //Choice je volba na obrazovce
-          choice_y:=scr_y-3;
-          chosen_x:= x+1;         //Chosen je volba na boardě
-          chosen_y:=y-1;
-        end
-      else if (y>1) and (x<6) and (board[x+1,y-1] = -1) and (board[x+2,y-2] = 0) then
-        begin
-          R_clr:= 2;
-          choice_x:=scr_x+9;
-          choice_y:=scr_y-6;
-          chosen_x:= x+2;
-          chosen_y:=y-2;
-        end;
-      choR_X:= chosen_x;        //Chi ukládají hodnoty, pro manipulaci s kurzorem
-      choR_Y:= chosen_y;
-      if (x>0) and (board[x-1,y-1] = 0) then
-        begin
-          L_clr:= 1;
-          choice_x:=scr_x-6;
-          choice_y:=scr_y-3;
-          chosen_x:= x-1;
-          chosen_y:=y-1;
-        end
-      else if (y>1) and (x>1) and (board[x-1,y-1] = -1) and (board[x-2,y-2] = 0) then
-        begin
-          L_clr:= 2;
-          choice_x:=scr_x-11;
-          choice_y:=scr_y-6;
-          chosen_x:= x-2;
-          chosen_y:=y-2;
-        end;
-      choL_X:= chosen_x;
-      choL_Y:= chosen_y;
-    end;
-
-  if sec_move = True then
-    begin
-      continue:=True;
-      if choL_X = x-1 then L_clr:=0;
-      if choR_x = x+1 then R_clr:=0;
-    end;
-
-  if (L_clr<>0) or (R_clr<>0) then
-    begin
-      continue:=True;   //Tohlw zařizuje postup k renderu a AI
-
-      gotoxy(scr_x-1,scr_y);
-      textBackground(Yellow);
-      write('   ');
-      textBackground(Black);
-      while go_on = False do
-        begin
-          //--------------------------↓↓Toto se stará o kurzor
-          gotoxy(choice_x,choice_y);
-          textBackground(Green);
-          write('   ');
-          repeat until KeyPressed;
-          key:=readkey();
-          gotoxy(choice_x,choice_y);
-          textBackground(White);
-          write('   ');
-          textBackground(Black);
-          //-----------------------------
-          case key of
-            'a': if L_clr<>0 then
-                   begin
-                     chosen_x:=choL_X;
-                     chosen_y:=choL_Y; //chosen je boarda, choice je pro render
-                     choice_x:=board_coor(chosen_x ,True) - 1;
-                     choice_y:=board_coor(chosen_y,False);
-                   end;
-            'd': if R_clr <>0 then
-                   begin
-                     chosen_x:=choR_X;
-                     chosen_y:=choR_Y;
-                     choice_x:=board_coor(chosen_x,True) - 1;
-                     choice_y:=board_coor(chosen_y,False);
-                   end;
-            ' ': begin
-                   cursor.x:=chosen_x;
-                   cursor.y:=chosen_y;
-                   if (chosen_x = x-2) then
-                     begin
-                       board[x-1,y-1]:=0;
-                       sec_move:= True;
-                     end;
-                   if (chosen_x = x+2) then
-                     begin
-                       board[x+1,y-1]:=0;
-                       sec_move:= True;
-                     end;
-                   board[x,y]:=0;
-                   board[chosen_x,chosen_y]:= 1;
-                   go_on:=True;
-                 end;//TODO Remove piece after being jumped over, modify procedure to be AI friendly
-          end;
-
-        end
-    end;
-end;
-
 function get_difference(board:t_board):integer;
 {Hráč - CPU => kladné je dobré}
 var x,y:byte;
@@ -313,10 +196,10 @@ begin
       get_difference += board[x,y];
 end;
 
-function find_jumps(board:T_board; x,y:Byte; player:integer):T_board_list;
+function find_jumps(board:T_board; x,y:Byte; player:integer;see_changes:boolean):T_board_list;
 var index,i:byte;
 begin
-  for i:= 0 to 3 do find_jumps[i][0,0]:= 42;
+  for i:= 0 to 14 do find_jumps[i][0,0]:= 42;
   index:=0;
   if board[x,y] = player * 1 then //běžný kámen
     if (y > -1 + player) and (y < 8 + player) then
@@ -326,8 +209,16 @@ begin
             if (board[x-1, y - player] = 0) then    //Vlevo nad je místo \\\   pro lidského hráče směr pohybu klesá
               begin
                 find_jumps[index] := board;
-                find_jumps[index][x,y]:= 0;
-                find_jumps[index][x-1, y - player]:= player * 1;
+                if see_changes then
+                  begin
+                    find_jumps[index][x,y]:= 69;
+                    find_jumps[index][x-1, y - player]:= player * 70;
+                  end
+                else
+                  begin
+                    find_jumps[index][x,y]:= 0;
+                    find_jumps[index][x-1, y - player]:= player * 1;
+                  end;
                 check_for_king(find_jumps[index]);
                 index += 1;
               end;
@@ -335,9 +226,17 @@ begin
               if (board[x-1, y - player] = player * -1) and (board[x-2, y - player*2] = 0) then
                 begin
                   find_jumps[index] := board;
-                  find_jumps[index][x,y]:= 0;
+                  if see_changes then
+                    begin
+                      find_jumps[index][x,y]:= 69;
+                      find_jumps[index][x-2, y - player*2]:= player * 70;
+                    end
+                  else
+                    begin
+                      find_jumps[index][x,y]:= 0;
+                      find_jumps[index][x-2, y - player*2]:= player * 1;
+                    end;
                   find_jumps[index][x-1,y - player]:= 0;
-                  find_jumps[index][x-2, y - player*2]:= player * 1;
                   check_for_king(find_jumps[index]);
                   index += 1;
                 end;
@@ -347,8 +246,16 @@ begin
             if (board[x+1, y - player] = 0) then   //Vpravo nad je místo
               begin
                 find_jumps[index] := board;
-                find_jumps[index][x,y]:= 0;
-                find_jumps[index][x+1, y - player]:= player * 1;
+                if see_changes then
+                  begin
+                    find_jumps[index][x,y]:= 69;
+                    find_jumps[index][x+1, y - player]:= player * 70;
+                  end
+                else
+                  begin
+                    find_jumps[index][x,y]:= 0;
+                    find_jumps[index][x+1, y - player]:= player * 1;
+                  end;
                 check_for_king(find_jumps[index]);
                 index += 1;
               end;
@@ -356,9 +263,17 @@ begin
               if (board[x+1, y - player] = player * -1) and (board[x+2, y - player*2] = 0) then
                 begin
                   find_jumps[index] := board;
-                  find_jumps[index][x,y]:= 0;
+                  if see_changes then
+                    begin
+                      find_jumps[index][x,y]:= 69;
+                      find_jumps[index][x+2, y - player*2]:= player * 70;
+                    end
+                  else
+                    begin
+                      find_jumps[index][x,y]:= 0;
+                      find_jumps[index][x+2, y - player*2]:= player * 1;
+                    end;
                   find_jumps[index][x+1,y - player]:= 0;
-                  find_jumps[index][x+2, y - player*2]:= player * 1;
                   check_for_king(find_jumps[index]);
                   index += 1;
                 end;
@@ -375,7 +290,7 @@ var y,x,i,k:Byte;
 
 begin
   editable_board:= in_board;
-  find_best_move:= player * -13; //inicializace pro případ, že nelze udělat další tah
+  find_best_move:= player * -60; //inicializace pro případ, že nelze udělat další tah
   scored_in_move:= 0;
   if recursed = difficulty  then
     begin
@@ -390,12 +305,11 @@ begin
   else                                                                                       // Ve skutečnosti vracim hodnotu o vrstvu výš, poto * -1
     begin
       for y:=0 to 7 do
-        for k:=0 to 3 do
+        for x:=0 to 7 do
           begin
-            x:= k * 2 + ((y+1) mod 2);
             if (in_board[x, y] = player) or (in_board[x, y] = player * 2) then
               begin
-                board_list:= find_jumps(editable_board, x,y, player);
+                board_list:= find_jumps(editable_board, x,y, player,False);
                 boards_to_select:=board_list;
                 for i:= 0 to 3 do
                   begin
@@ -407,7 +321,7 @@ begin
                           begin
                             if (rand_moves = True) and (scored_in_move =  find_best_move) then
                               rand_num := Random(100);
-                            if rand_num > 30 then
+                            if rand_num > RAND_KOEF then
                               begin
                                 find_best_move:= scored_in_move;
                                 in_board:= board_list[i];   // !!!!! Toto je strašně důležitý - f-ce f_b_m upraví boardu na nejlepší, co našla.
@@ -430,6 +344,46 @@ begin
         writeln('find_best_move: ',find_best_move);
         readln();
       end;
+end;
+
+procedure move_stone(var board:T_board;var continue:Boolean;var cursor:T_cursor);
+var possible_moves:T_board_list;
+    index:integer;
+    key:char;
+    take_action:boolean;
+    x,y:Byte;
+begin
+  index:=0;
+  take_action:= False;
+  if board[cursor.x,cursor.y] <> 0 then
+  begin
+    possible_moves:= find_jumps(board,cursor.x,cursor.y,1,True);
+    continue:=False;
+    if possible_moves[0][0,0] <> 42 then
+      begin
+        continue:=True;
+        while take_action = False do
+          begin
+            render(possible_moves[index]);
+            repeat until KeyPressed;
+            key:=readkey();
+            case key of
+              'd': if possible_moves[index+1][0,0] <> 42 then index += 1;
+              'a': if index>0 then index -= 1;
+              ' ':begin
+                    take_action:= True;
+                    for y:=0 to 7 do
+                      for x:=0 to 7 do
+                        begin
+                          if possible_moves[index][x,y] = 69 then possible_moves[index][x,y]:= 0;
+                          if possible_moves[index][x,y] = 70 then possible_moves[index][x,y]:= 1;
+                          board:=possible_moves[index];
+                        end;
+                  end;
+            end;
+          end;
+      end;
+  end;
 end;
 
 function check_game_over (board:T_board;var winner:boolean):boolean;
@@ -492,11 +446,12 @@ end;
 begin
   //dev tools
   CPUvCPU:=            False;
-  custom_board:=       True;
+  custom_board:=       False;
   debug_mode:=         False;
   last_layer_debug :=  False;
   rand_moves:=         True;
 
+  RAND_KOEF:=70;
   KING:=5;
 
   menu(difficulty);
@@ -516,9 +471,9 @@ begin
       take_action:=False;                               //↓↓↓Controls
       while take_action = False do
         begin
-          cursor_blink(Yellow,board_coor(cursor.x, True),board_coor(cursor.y,False));
+          cursor_render(Yellow,board_coor(cursor.x, True),board_coor(cursor.y,False));
           repeat until KeyPressed; //Waiting for input
-          cursor_blink(get_color(cursor.x,cursor.y),board_coor(cursor.x, True),board_coor(cursor.y,False));
+          cursor_render(get_color(cursor.x,cursor.y),board_coor(cursor.x, True),board_coor(cursor.y,False));
           key:=readkey();
           case key of
             'd': if cursor.x<7 then cursor.x += 1;
@@ -528,9 +483,9 @@ begin
             ' ': if board[cursor.x, cursor.y] = 1 then
                    begin
                      sec_move:= False;
-                     move_stone(board, cursor.x, cursor.y,take_action,sec_move,cursor);
+                     move_stone(board,take_action,cursor);
                      if sec_move then
-                       move_stone(board, cursor.x, cursor.y,take_action,sec_move,cursor);
+                       move_stone(board,take_action,cursor);
                    end;
           end;
         end;
