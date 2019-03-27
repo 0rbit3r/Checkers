@@ -10,7 +10,8 @@ var difficulty:byte;    //Difficulty bude počet rekurzí
     board:T_board;
     cursor:T_cursor;
     game_over, take_action, {Přechod k logice}sec_move, winner,
-    last_layer_debug, debug_mode, custom_board, CPUvCPU, rand_moves,end_menu: boolean;
+    last_layer_debug, debug_mode, custom_board, CPUvCPU, rand_moves,end_menu,
+    special_board: boolean;
     key:char;
     rand_num,KING,RAND_KOEF:integer;
 
@@ -22,13 +23,15 @@ begin
     ClrScr;
     writeln('CHECKERS');
     writeln('Pro start hry zadej obtiznost 1 - 8.');
-    writeln('Pro DEMO zadej [100]     Demo = ', CPUvCPU);
+    writeln('Pro DEMO zadej [100]                               Demo            = ', CPUvCPU);
+    writeln('Pro Spesl rozlozeni kamenu zadej [200]             Spesl rozlozeni = ',special_board);
     writeln();
     writeln('Pro napovedu zadej 0');
     write('>>>  ');
     readln(difficulty);
 
     if difficulty = 100 then CPUvCPU:= not CPUvCPU
+    else if difficulty = 200 then special_board:= not special_board
     else if difficulty = 0 then
       begin
         writeln();
@@ -150,25 +153,34 @@ begin
     for x:=0 to 7 do
       board[x,y]:= 0;
   if custom_board then
-  begin
-    board[1,0]:= 0; board[3,0]:= 5; board[5,0]:= 0; board[7,0]:= 0;
-    board[0,1]:= 0; board[2,1]:= 0; board[4,1]:= 0; board[6,1]:= -1;
-    board[1,2]:= 0; board[3,2]:= 0; board[5,2]:= 0; board[7,2]:= 0;
-    board[0,3]:= 0; board[2,3]:= 1; board[4,3]:= 0; board[6,3]:= 1;
-    board[1,4]:= 0; board[3,4]:= 1; board[5,4]:= 0; board[7,4]:= 0;
-    board[0,5]:= 0; board[2,5]:= 0; board[4,5]:= 0; board[6,5]:= 0;
-    board[1,6]:= 0; board[3,6]:= 0; board[5,6]:= 0; board[7,6]:= 0;
-    board[0,7]:= -5; board[2,7]:= 0; board[4,7]:= 0; board[6,7]:= 0;
-  end
+    begin
+      board[1,0]:= 0; board[3,0]:= 5; board[5,0]:= 0; board[7,0]:= 0;
+      board[0,1]:= 0; board[2,1]:= 0; board[4,1]:= 0; board[6,1]:= -1;
+      board[1,2]:= 0; board[3,2]:= 0; board[5,2]:= 0; board[7,2]:= 0;
+      board[0,3]:= 0; board[2,3]:= 1; board[4,3]:= 0; board[6,3]:= 1;
+      board[1,4]:= 0; board[3,4]:= 1; board[5,4]:= 0; board[7,4]:= 0;
+      board[0,5]:= 0; board[2,5]:= 0; board[4,5]:= 0; board[6,5]:= 0;
+      board[1,6]:= 0; board[3,6]:= 0; board[5,6]:= 0; board[7,6]:= 0;
+      board[0,7]:= -5; board[2,7]:= 0; board[4,7]:= 0; board[6,7]:= 0;
+    end
+  else if special_board then
+    begin
+      board[1,0]:= -1; board[3,0]:= 0; board[5,0]:= 0; board[7,0]:= -1;
+      board[0,1]:= -1; board[2,1]:= -1; board[4,1]:= -1; board[6,1]:= -1;
+      board[1,2]:= -1; board[3,2]:= -1; board[5,2]:= -1; board[7,2]:= -1;
+      board[0,5]:= 1; board[2,5]:= 1; board[4,5]:= 1; board[6,5]:= 1;
+      board[1,6]:= 1; board[3,6]:= 1; board[5,6]:= 1; board[7,6]:= 1;
+      board[0,7]:= 1; board[2,7]:= 0; board[4,7]:= 0; board[6,7]:= 1;
+    end
   else
-  begin
-    board[1,0]:= -1; board[3,0]:= -1; board[5,0]:= -1; board[7,0]:= -1;
-  board[0,1]:= -1; board[2,1]:= -1; board[4,1]:= -1; board[6,1]:= -1;
-  board[1,2]:= -1; board[3,2]:= -1; board[5,2]:= -1; board[7,2]:= -1;
-  board[0,7]:= 1; board[2,7]:= 1; board[4,7]:= 1; board[6,7]:= 1;
-  board[1,6]:= 1; board[3,6]:= 1; board[5,6]:= 1; board[7,6]:= 1;
-  board[0,5]:= 1; board[2,5]:= 1; board[4,5]:= 1; board[6,5]:= 1;
-  end;
+    begin
+      board[1,0]:= -1; board[3,0]:= -1; board[5,0]:= -1; board[7,0]:= -1;
+      board[0,1]:= -1; board[2,1]:= -1; board[4,1]:= -1; board[6,1]:= -1;
+      board[1,2]:= -1; board[3,2]:= -1; board[5,2]:= -1; board[7,2]:= -1;
+      board[0,5]:= 1; board[2,5]:= 1; board[4,5]:= 1; board[6,5]:= 1;
+      board[1,6]:= 1; board[3,6]:= 1; board[5,6]:= 1; board[7,6]:= 1;
+      board[0,7]:= 1; board[2,7]:= 1; board[4,7]:= 1; board[6,7]:= 1;
+    end;
 end;
 
 function get_color(x,y:Byte):Byte;
@@ -532,6 +544,15 @@ begin
       end;
 end;
 
+function check_jammed( board:T_board):Boolean;
+var x,y:Byte;
+begin
+    check_jammed:=True;
+    for y:=0 to 7 do
+      for x:=0 to 7 do
+          if find_jumps(board,x,y,1,false)[0][0,0] <> 42 then check_jammed:= False;
+end;
+
 begin
   //dev tools
   CPUvCPU:=            False;
@@ -546,13 +567,14 @@ begin
   randomize();
   game_over:= False;
   winner:= False;
-  board_init(board);
 
   menu(difficulty);
   Clrscr();
   cursor.x:=0;
   cursor.y:=0;
+  board_init(board);
   render(board);
+
 
   if CPUvCPU then demo(board,game_over,winner);
   while game_over = False do  //Main game loop
@@ -560,6 +582,7 @@ begin
       take_action:=False;                               //↓↓↓Controls
       while take_action = False do
         begin
+          take_action:= check_jammed(board);
           cursor_render(Yellow,board_coor(cursor.x, True),board_coor(cursor.y,False));
           repeat until KeyPressed; //Waiting for input
           cursor_render(get_color(cursor.x,cursor.y),board_coor(cursor.x, True),board_coor(cursor.y,False));
