@@ -10,38 +10,60 @@ var difficulty:byte;    //Difficulty bude počet rekurzí
     board:T_board;
     cursor:T_cursor;
     game_over, take_action, {Přechod k logice}sec_move, winner,
-    last_layer_debug, debug_mode, custom_board, CPUvCPU, rand_moves: boolean;
+    last_layer_debug, debug_mode, custom_board, CPUvCPU, rand_moves,end_menu: boolean;
     key:char;
     rand_num,KING,RAND_KOEF:integer;
 
 
 procedure menu(var difficulty:byte);
 begin
+  end_menu:=False;
   repeat
     ClrScr;
     writeln('CHECKERS');
     writeln('Pro start hry zadej obtiznost 1 - 8.');
+    writeln('Pro DEMO zadej [100]     Demo = ', CPUvCPU);
     writeln();
     writeln('Pro napovedu zadej 0');
     write('>>>  ');
     readln(difficulty);
-    if difficulty = 0 then
+
+    if difficulty = 100 then CPUvCPU:= not CPUvCPU
+    else if difficulty = 0 then
       begin
+        writeln();
         writeln('Hra se ovlada klavesami:');
         writeln('W,A,S,D   = Pohyb');
-        writeln('SPACE     = Zvolit');
+        writeln('SPACE     = Zvolit kamen');
         writeln('C         = Zrusit');
-        writeln('Pravidla damy jsou na wikipedii.');
+        writeln();
+        writeln('Po volbe kamene se pomoci klaves A a D najde pozadovany tah');
+        writeln('POZOR! U damy se k pozadovanemu tahu da vzdy dostat pomoci klavesy D.');
+        writeln('       Mate totiz k dispozici pole, ktere prochazite doleva a doprava');
+        writeln('       a zacinate na prvni moznosti.');
+        writeln();
+        writeln('Pro rychlejsi vykreslovani doporucuji kliknout na ikonu konzole pravym');
+        writeln('tlacitkem mysi, zvolit "deafults", zaskrtnout policko "Use legacy');
+        writeln('console" a spustit program znovu');
+        writeln();
+        writeln('PRAVIDLA: ');
+        writeln('    Pravidla teto verze jsou mirne vykastrovana od tech, ktere mozna znate.');
+        writeln('Kameny se pohybuji po diagonalach. Pesaci mohou preskocit kamen, ktery se');
+        writeln('jim postavi do cesty. Pokud se pesak dostane na druhy konec sachovnice,');
+        writeln('stava se damou. Dama se muze pohybovat libovolne daleko ve vsech ctyrech smerech.');
+        writeln('    Na rozdil od klasickych pravidel jsou zde dve upravy. Nejsou mozne nasobne');
+        writeln('skoky a pokud pesak nebo dama mohou preskocit a neucini tak, tak nebudou sebrany.');
+        writeln('');
         writeln('Pro navrat do menu stiskni ENTER');
         readln();
       end
-    else
-      if (difficulty < 0) or (difficulty > 8) then
+    else if ((difficulty < 0) or (difficulty > 8)) then
       begin
         writeln('Stiskni ENTER a zkus to znovu a tentokrat spravne:-P');
         readln();
-      end;
-  until (difficulty > 0) and (difficulty <= 8);
+      end
+    else if (difficulty > 0) or (difficulty <= 8) then end_menu:= True;
+  until end_menu;
 end;
 
 procedure render(board:T_board);
@@ -302,7 +324,6 @@ begin
                 begin
                   if board[x0,y0] = 0 then
                     begin
-                      obstacles:=0;
                       find_jumps[index]:=board;
                       if enemy_x <> 200 then
                         begin
@@ -443,6 +464,11 @@ begin
                           board:=possible_moves[index];
                         end;
                   end;
+              'c':begin
+                    take_action:=True;
+                    continue:=False;
+                    render(board);
+                  end;
             end;
           end;
       end;
@@ -517,12 +543,12 @@ begin
   RAND_KOEF:=70;
   KING:=5;
 
-  menu(difficulty);
-
   randomize();
   game_over:= False;
   winner:= False;
   board_init(board);
+
+  menu(difficulty);
   Clrscr();
   cursor.x:=0;
   cursor.y:=0;
