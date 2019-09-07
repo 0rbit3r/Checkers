@@ -39,9 +39,6 @@ Dokumentace pro programátory
 Vykreslování hry:
 Používá se mezera a znak █, který se dá velice efektivně napsat Pomocí Alt + 987. Barvičky umožňují rozpoznání kamenů.
 Herní plocha se vykreslí vždy po změně na ploše a to ať už faktické (změna pozice kamene) nebo grafické (preview tahu).
-  █ 
-█   █ Ukazatel ukazuje
-  █
   
 Logika hry:
 
