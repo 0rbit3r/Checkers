@@ -36,3 +36,24 @@ Pochvalte jej za to. Poté, co uvidíte, že protihráč udělal jeho tah už v�
 
 Dokumentace pro programátory
 
+Vykreslování hry:
+Používá se mezera a znak █, který se dá velice efektivně napsat Pomocí Alt + 987. Barvičky umožňují rozpoznání kamenů.
+Herní plocha se vykreslí vždy po změně na ploše a to ať už faktické (změna pozice kamene) nebo grafické (preview tahu).
+  █ 
+█   █ Ukazatel ukazuje
+  █
+  
+Logika hry:
+
+Umělá inteligence počítače je způsobená Minimaxovým algoritmem. Obtížnost hry je ve skutečnosti jenom zamaskovaná hloubka Minimaxu.
+Organická inteligence je způsobená obrovským množstvím neuronů, které kolektivně nějak vytváří vědomí a depresi.
+Otázka vědomí a svobodné vůle zatím nebyla vyřešena. Otázka deprese sice ano, ale má příliš depresivní odpověď.
+
+Hlavní část logiky má na starost funkce find_best_move. Tato funkce projde hrací plochu odshora dolů
+(Nevadilo by jí to ani zprava doleva, protože funkce zpravidla nejsou orientované v prostoru.) a najde kameny, které se mohou pohybovat.
+S těmito kameny potom pohne pomocí funkce find_jumps a zavolá na nově vzniklý stav hry sama sebe.
+To dělá až dokud není v hlubce rovnající se obtížnosti. Potom předá nahoru informace o stavu hry - především o počtech kamenů hráčů.
+Podle těch se poté funkce zavolaná "nad" rozhodne, který stav hry je lepší pro ní (Min nebo Max) a pošle to samé nahoru.
+Kořenová funkce potom vybere tu možnost, která odpovídá nejlepším tahům zvolených při znalosti stavu hry do dané hloubky oběma hráči.
+
+
