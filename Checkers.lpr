@@ -13,7 +13,7 @@ const
     RAND_KOEF = 70;
     BLANK_MOVE = 42;
     TOO_HIGH = 200;
-    BOARD_LAST_INDEX = 9;
+    BOARD_LAST_INDEX = 7;
     MOVES_MEMORY_SIZE = 6;
 type T_board = array[0..BOARD_LAST_INDEX,0..BOARD_LAST_INDEX] of integer;
      T_cursor = record
